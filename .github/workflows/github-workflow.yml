@@ -49,7 +49,7 @@ jobs:
         CONFIG_PATH="${{ github.event.inputs.config }}"
         REPO_NAME="temp-repo-${{ github.sha }}"
         
-        curl -H "Authorization: token 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" \
+        curl -H "Authorization: token ${{secrets.GITHUBTOKEN}}" \
              -d '{"name": "'${REPO_NAME}'", "private": true}' \
               https://api.github.com/user/repos
               
@@ -75,7 +75,7 @@ jobs:
         git config --global user.name "Ferielkraiem2000"
         git config --global user.email "feriel.benkraiem@ensi-uma.tn"
         git branch -M main
-        git remote add origin https://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@github.com/Ferielkraiem2000/${REPO_NAME}.git
+        git remote add origin https://${{secrets.GITHUBTOKEN}}@github.com/Ferielkraiem2000/${REPO_NAME}.git
         # git pull origin main
         git add .
         git commit -m "Add configuration for ${CONFIG_PATH}"
