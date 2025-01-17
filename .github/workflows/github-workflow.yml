@@ -1,0 +1,113 @@
+name: Create Temporary GitHub Repository for Client
+
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       config:
+#         description: 'Configuration demandée par le client (ex: githubcloudhubelkjfrog)'
+#         required: true
+#         type: string
+
+# on: push
+on:
+  workflow_dispatch:
+    inputs:
+      versioningTool:
+        description: "Versioning tool"
+        required: true
+      hostingType:
+        description: "Hosting type"
+        required: true
+      monitoringTool:
+        description: "Monitoring tool"
+        required: true
+      hostingJarTool:
+        description: "Hosting Jar Tool"
+        required: true
+
+jobs:
+  create-repository:
+    runs-on: ubuntu-latest
+    # outputs:
+    #   repo_url: ${{ steps.create_repo.outputs.repo_url }}
+    steps:
+      
+    - name: Checkout main repository
+      uses: actions/checkout@v3
+
+      
+    - name: Set up Git
+      run: |
+        git config --global user.name "Ferielkraiem2000"
+        git config --global user.email "feriel.benkraiem@ensi-uma.tn"
+
+      
+    - name: Create temporary repository
+      id: create_repo
+      run: |
+        sudo apt install jq -y 
+        CONFIG_PATH="${{ github.event.inputs.config }}"
+        REPO_NAME="temp-repo-${{ github.sha }}"
+        
+        curl -H "Authorization: token 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" \
+             -d '{"name": "'${REPO_NAME}'", "private": true}' \
+              https://api.github.com/user/repos
+              
+        repo_url="https://github.com/Ferielkraiem2000/${REPO_NAME}"
+        # echo "::set-output name=repo_url::https://github.com/Ferielkraiem2000/${REPO_NAME}"
+        # echo "repo_url=$REPO_URL" >> $GITHUB_ENV
+        echo "Repo URL: $repo_url"
+        # echo "$repo_url" > repo_url.txt
+ 
+
+    - name: Copy configuration to new repository
+      run: |
+        # CONFIG_PATH="ELK/Jfrog"
+        # FOLDER_PATH="Github/Cloudhub2.0/${CONFIG_PATH}"
+        FOLDER_PATH="${{ github.event.inputs.versioningTool }}/${{ github.event.inputs.hostingType }}/${{ github.event.inputs.monitoringTool }}/${{ github.event.inputs.hostingJarTool }}"
+        REPO_NAME="temp-repo-${{ github.sha }}"
+       
+        mkdir -p temp_repo
+        cp -r ${FOLDER_PATH}/* temp_repo/
+
+        cd temp_repo
+        git init
+        git config --global user.name "Ferielkraiem2000"
+        git config --global user.email "feriel.benkraiem@ensi-uma.tn"
+        git branch -M main
+        git remote add origin https://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@github.com/Ferielkraiem2000/${REPO_NAME}.git
+        # git pull origin main
+        git add .
+        git commit -m "Add configuration for ${CONFIG_PATH}"
+        git push -u origin main
+        
+
+  # print-repo-url:
+  #   runs-on: ubuntu-latest
+  #   needs: create-repository  
+  #   steps:
+  #     - name: Print repo_url
+  #       run: echo "Repo URL is ${{ needs.create-repository.outputs.repo_url }}"
+      
+
+    # - name: Add Expiration Tag
+    #   run: |
+    #      REPO_NAME="temp-repo-${{ github.sha }}"
+    #      COMMIT_SHA=$(curl -H "Authorization: token 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" \
+    #                     -H "Accept: application/vnd.github.v3+json" \
+    #                     https://api.github.com/repos/comweave/${REPO_NAME}/commits \
+    #                     | jq -r '.[0].sha')
+    #      EXPIRATION_TAG="expire-$(date -u -d "+1 minute" +"%Y-%m-%dT%H:%M:%SZ" | sed 's/:/-/g' | sed 's/\./_/g')"
+    #      curl -X POST -H "Authorization: token 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" \
+    #          -H "Accept: application/vnd.github.v3+json" \
+    #          https://api.github.com/repos/comweave/${REPO_NAME}/git/tags \
+    #          -d '{
+    #                "tag": "'${EXPIRATION_TAG}'",
+    #                "message": "This repository will expire in 1 minute.",
+    #                "object": "'${COMMIT_SHA}'",
+    #                "type": "commit",
+    #                "tagger": {
+    #                  "name": "Feriel Ben Kraiem",
+    #                  "email": "feriel.benkraiem@it-mma.com"
+    #                  }
+    #              }'
