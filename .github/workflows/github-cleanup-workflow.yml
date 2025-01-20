@@ -2,7 +2,7 @@ name: Cleanup Expired Repositories
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/3 * * * *'
 
     
 jobs:
