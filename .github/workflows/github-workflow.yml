@@ -50,7 +50,7 @@ jobs:
         REPO_NAME="temp-repo-${{ github.sha }}"
         
         curl -H "Authorization: token ${{secrets.GITHUBTOKEN}}" \
-             -d '{"name": "'${REPO_NAME}'", "private": true}' \
+             -d '{"name": "'${REPO_NAME}'", "private": false}' \
               https://api.github.com/user/repos
               
         repo_url="https://github.com/Ferielkraiem2000/${REPO_NAME}"
