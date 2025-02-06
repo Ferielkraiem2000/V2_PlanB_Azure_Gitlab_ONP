@@ -4,7 +4,7 @@ image: maven:3.8.4-jdk-11
 variables:
   MAVEN_CLI_OPTS: ""
   GIT_EMAIL: "$GIT_EMAIL"
-  # GIT_TOKEN: "$CI_JOB_TOKEN"
+  GIT_TOKEN: "$CI_JOB_TOKEN"
   BUSINESS_GROUP: "$BUSINESS_GROUP"
   ANYPOINT_CLIENT_ID: "$ANYPOINT_CLIENT_ID"
   ANYPOINT_CLIENT_SECRET: "$ANYPOINT_CLIENT_SECRET"
@@ -52,7 +52,7 @@ setup_maven:
     - GITLAB_EMAIL_ENCRYPTED=$(echo -n "${GITLAB_EMAIL}" | openssl enc -aes-256-cbc -salt -pbkdf2 -k "$ENCRYPTION_PASSWORD" -base64 -A)
     - ANYPOINT_CLIENT_ID_ENCRYPTED=$(echo -n "${ANYPOINT_CLIENT_ID}" | openssl enc -aes-256-cbc -salt -pbkdf2 -k "$ENCRYPTION_PASSWORD" -base64 -A)
     - ANYPOINT_CLIENT_SECRET_ENCRYPTED=$(echo -n "${ANYPOINT_CLIENT_SECRET}" | openssl enc -aes-256-cbc -salt -pbkdf2 -k "$ENCRYPTION_PASSWORD" -base64 -A)
-    - GITLAB_TOKEN_ENCRYPTED=$(echo -n "glpat-wB4qxmm7GnsDMC1Tgcu2" | openssl enc -aes-256-cbc -salt -pbkdf2 -k "$ENCRYPTION_PASSWORD" -base64 -A)
+    - GITLAB_TOKEN_ENCRYPTED=$(echo -n "${GIT_TOKEN}" | openssl enc -aes-256-cbc -salt -pbkdf2 -k "$ENCRYPTION_PASSWORD" -base64 -A)
    
     - |
       cat << EOF > settings.xml
