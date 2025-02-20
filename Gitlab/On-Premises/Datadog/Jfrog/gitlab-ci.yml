@@ -103,12 +103,7 @@ setup_maven:
     - git commit -m "Add Maven settings file" || echo "Nothing to commit"
     - git push dev "${CI_COMMIT_REF_NAME}"
 
-
-
-
 update_parent_pom:
-
-
   stage: update
   script:
     - echo "Checking for settings.xml..."
@@ -141,14 +136,12 @@ update_parent_pom:
         echo 'ANYPOINT_CLIENT_SECRET_ENCRYPTED=$(sed -n "/<id>anypoint-repo<\/id>/,/<\/server>/ s/.*<password>\(.*\)<\/password>.*/\1/p" ./settings.xml)' >> update-parentPOM.sh
         echo 'ANYPOINT_ID_DECRYPTED=$(echo "${ANYPOINT_CLIENT_ID_ENCRYPTED}" | openssl enc -aes-256-cbc -d -salt -pbkdf2 -k "$ENCRYPTION_PASSWORD" -base64)' >> update-parentPOM.sh
         echo 'ANYPOINT_SECRET_DECRYPTED=$(echo "${ANYPOINT_CLIENT_SECRET_ENCRYPTED}" | openssl enc -aes-256-cbc -d -salt -pbkdf2 -k "$ENCRYPTION_PASSWORD" -base64)' >> update-parentPOM.sh
-        echo 'org_id=$(curl -X GET "https://anypoint.mulesoft.com/accounts/api/me" -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Content-Type: application/json" | jq -r ".user.organization.id")' >> update-parentPOM.sh
-        echo 'MULE_APP_NAME=$(grep -oPm1 "(?<=<name>)[^<]+" pom.xml)' >> update-parentPOM.sh
         echo 'MULE_RUNTIME_VERSION=$(grep -oPm1 "(?<=<app.runtime>)[^<]+" pom.xml)' >> update-parentPOM.sh
         echo 'cat << EOF > parent_pom.xml' >> update-parentPOM.sh
         echo '<?xml version="1.0" encoding="UTF-8"?>' >> update-parentPOM.sh
         echo '<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">' >> update-parentPOM.sh
         echo '  <modelVersion>4.0.0</modelVersion>' >> update-parentPOM.sh
-        echo '  <groupId>$org_id</groupId>' >> update-parentPOM.sh
+        echo '  <groupId>com.mycompany</groupId>' >> update-parentPOM.sh
         echo '  <artifactId>parent-pom</artifactId>' >> update-parentPOM.sh
         echo '  <version>1.0.0</version>' >> update-parentPOM.sh
         echo '  <packaging>pom</packaging>' >> update-parentPOM.sh
@@ -214,7 +207,6 @@ update_parent_pom:
     - git diff --cached --quiet || git commit -m "Create and update Parent POM file"
     - git push --force dev $CI_COMMIT_BRANCH
 
-
 update_project_pom:
   stage: update
   script:
@@ -227,11 +219,7 @@ update_project_pom:
       git remote add dev https://gitlab.com/${GIT_USERNAME}/${GIT_REPO}.git
       git remote set-url dev https://oauth2:${GIT_TOKEN}@gitlab.com/${GIT_USERNAME}/${GIT_REPO}.git          
     - |
-      # Create the update-projectPOM.sh script using touch
       touch update-projectPOM.sh
-
-
-      # Write the script contents using echo and append to the file
       echo '#!/bin/bash' > update-projectPOM.sh
       echo 'PARENT_GROUP_ID=$(grep -oPm1 "(?<=<groupId>)[^<]+" parent_pom.xml)' >> update-projectPOM.sh
       echo 'PARENT_ARTIFACT_ID=$(grep -oPm1 "(?<=<artifactId>)[^<]+" parent_pom.xml)' >> update-projectPOM.sh
@@ -241,10 +229,7 @@ update_project_pom:
       echo 'if [ "$PARENT_EXISTS" -eq 0 ]; then' >> update-projectPOM.sh
       echo '  PARENT_INCLUSION="<parent>\n<groupId>${PARENT_GROUP_ID}</groupId>\n<artifactId>${PARENT_ARTIFACT_ID}</artifactId>\n<version>${PARENT_VERSION}</version>\n<relativePath>./parent_pom.xml</relativePath>\n</parent>"' >> update-projectPOM.sh
       echo '  sed -i "/<\/project>/i $PARENT_INCLUSION" pom.xml' >> update-projectPOM.sh
-      echo '  org_id=$(curl -X GET "https://anypoint.mulesoft.com/accounts/api/me" -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Content-Type: application/json" | jq -r ".user.organization.id")' >> update-projectPOM.sh
-      echo '  sed -i "0,/<groupId>[^<]*<\/groupId>/s|<groupId>[^<]*</groupId>|<groupId>$org_id</groupId>|" pom.xml' >> update-projectPOM.sh
       echo '  sed -i "0,/<version>[^<]*<\/version>/s|<version>[^<]*</version>|<version>1.0.0</version>|" pom.xml' >> update-projectPOM.sh
-      echo '  sed -i "/<\/repositories>/i <repository>\n<id>Repository</id>\n<name>Private Exchange repository</name>\n<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/\${project.groupId}/maven</url>\n<layout>default</layout>\n</repository>" pom.xml' >> update-projectPOM.sh
       echo '  sed -i "/<\/repositories>/i <repository>\n<id>jfrog</id>\n<url>https://working-cobra-early.ngrok-free.app/artifactory/mule4-jars/</url>\n<releases>\n<enabled>true</enabled>\n<updatePolicy>never</updatePolicy>\n</releases>\n<snapshots>\n<enabled>false</enabled>\n</snapshots>\n</repository>" pom.xml' >> update-projectPOM.sh
       echo '  sed -i "/<\/project>/i <distributionManagement>\n<repository>\n<id>jfrog</id>\n<url>https://working-cobra-early.ngrok-free.app/artifactory/mule4-jars/</url>\n</repository>\n</distributionManagement>" pom.xml' >> update-projectPOM.sh
       echo '  git checkout -b "${CI_COMMIT_BRANCH}" || git checkout "${CI_COMMIT_BRANCH}"' >> update-projectPOM.sh
@@ -255,15 +240,8 @@ update_project_pom:
       echo 'else' >> update-projectPOM.sh
       echo '  echo "<parent> section already exists in pom.xml. No changes made."' >> update-projectPOM.sh
       echo 'fi' >> update-projectPOM.sh
-
-
-      # Make the script executable
       chmod +x update-projectPOM.sh
-
-
-      # Execute the script
       ./update-projectPOM.sh
-
 
 generate_logs_extraction_API:
   stage: generate-api
@@ -302,7 +280,6 @@ generate_logs_extraction_API:
       chmod +x update-mule-project.sh
       ./update-mule-project.sh        
 
-
 build:
   stage: build
   script:
@@ -313,18 +290,15 @@ host_jar:
   script:
     - mvn deploy -s settings.xml
 
-
 host_parent_pom:
   stage: host-parentpom
   script:
     - mvn deploy -s settings.xml -f parent_pom.xml
 
-
 deploy_project:
   stage: deploy
   script:
     - mvn deploy -DmuleDeploy -DskipTests
-
 
 send_logs_to_datadog:
   stage: send-logs
